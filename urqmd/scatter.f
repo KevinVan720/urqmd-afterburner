@@ -733,7 +733,7 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       real*8 rpott(2),rpotx(2),rpoty(2),rpotz(2)
       real*8 tauf(mprt),tformold(2)
       integer getspin,bar,nm1,nm2
-      integer D_ctl, light_ind, heavy_ind
+      integer D_ctl, light_ind, heavy_ind, dum_ind
 
       common /scatcomr/rstringx,rstringy,rstringz,tstring,
      &                 rpott,rpotx,rpoty,rpotz,
@@ -801,27 +801,9 @@ c>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ! D + D -> D + D  ==> D_ctl=0 
 ! l + l -> X ...  ==> D_ctl=1
 ! D + l -> D + l  ==> D_ctl=2 (there is no D+l->X case)
-! D* -> D + l     ==> D_ctl=3 (decay)
+! D* -> D + l     ==> D_ctl=3 (decay, except D*+)
+! D*+ -> D + l    ==> D_ctl=4 (D*+ decay)
        
-! for debug       
-!        if(D_ctl.eq.3) then
-!            write(6,*) "Decay!!: ", tind(1),tind(2),ind1,ind2
-!        endif
-
-!        if(D_ctl.eq.2) then
-!             if(nexit.eq.2) then
-!                 write(6,*) 'normal scattering'
-!             else if (nexit .eq. 1) then
-!       write(6,*) "D+l->X", ind1,ind2,inew(1),inew(2),
-!     &                     ityp(inew(1)), ityp(inew(2)),
-!     &                     itypnew(1)
-!       write(6,*) "D+l->X", tind(1),tind(2),tityp(1),tityp(2)
-!             else
-!       write(6,*) "something wired:", D_ctl, nexit, tind(1),
-!     &      tind(2), tityp(1), tityp(2) 
-
-!             endif
-!         endif
 
       if (D_ctl .eq.0) then
         do i = 1, nexit
@@ -873,7 +855,7 @@ c>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
               tstring(ipmp(i)) = tr0(light_ind)
               rstringx(ipmp(i)) = trx(light_ind)
               rstringy(ipmp(i)) = try(light_ind)
-              rstringz(ipmp(i)) = trx(light_ind)
+              rstringz(ipmp(i)) = trz(light_ind)
               pnew(4,itmp(i)) = tp0(light_ind)
               pnew(1,itmp(i)) = tpx(light_ind)
               pnew(2,itmp(i)) = tpy(light_ind)
@@ -898,12 +880,16 @@ c>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 !     &      tityp(2),itmp(1),itmp(2),ipmp(1),ipmp(2)
       endif
  
-! a final delete slot , for D_ctl=3
+! a final delete slot , for D_ctl=3 or 4
       if(D_ctl.eq.3) then
 !       write(6,*)"old: ", D_ctl,nexit,ind1,ind2,inew(1),inew(2),tind(1),
 !     &     tind(2),itypnew(1),itypnew(2),itmp(1),itmp(2),ipmp(1),ipmp(2)
-         inew(1) = min0(inew(1), inew(2))
-         inew(2) = max0(inew(1), inew(2))
+         if(inew(1).gt.inew(2)) then
+            dum_ind = inew(1)
+            inew(1) = inew(2)
+            inew(2) = dum_ind
+         endif
+
          do i=1, nexit
          if(itypnew(1).eq.133 .or. itypnew(1).eq.134) then
                ipmp(1) = 1
@@ -925,6 +911,52 @@ c>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 !       write(6,*) "new: ",D_ctl,nexit,ind1,ind2,inew(1),inew(2),tind(1),
 !     &     tind(2),itypnew(1),itypnew(2),itmp(1),itmp(2),ipmp(1),ipmp(2)
       endif
+
+c an extra check for forbidden D*+ decays
+! a final delete slot , for D_ctl=3 or 4
+      if(D_ctl.eq.4) then
+!       write(6,*)"old: ", D_ctl,nexit,ind1,ind2,inew(1),inew(2),tind(1),
+!     &     tind(2),itypnew(1),itypnew(2),itmp(1),itmp(2),ipmp(1),ipmp(2)
+         if (inew(1).gt.inew(2)) then
+            dum_ind = inew(1)
+            inew(1) = inew(2)
+            inew(2) = dum_ind
+         endif
+         do i=1, nexit
+         if(itypnew(1).eq.133 .or. itypnew(1).eq.134) then
+               ipmp(1) = 1
+               ipmp(2) = 2
+               itmp(1) = 1
+               itmp(2) = 2
+         else
+               ipmp(1) = 2
+               itmp(1) = 2
+               ipmp(2) = 1
+               itmp(2) = 1
+         endif
+              tstring(ipmp(1)) = r0(inew(1))
+              rstringx(ipmp(1)) = rx(inew(1))
+              rstringy(ipmp(1)) = ry(inew(1))
+              rstringz(ipmp(1)) = rz(inew(1))
+              rpott(ipmp(1)) = r0_t(inew(1))
+              rpotx(ipmp(1)) = rx_t(inew(1))
+              rpoty(ipmp(1)) = ry_t(inew(1))
+              rpotz(ipmp(1)) = rz_t(inew(1))
+              pnew(4,itmp(1)) = p0(inew(1))
+              pnew(1,itmp(1)) = px(inew(1))
+              pnew(2,itmp(1)) = py(inew(1))
+              pnew(3,itmp(1)) = pz(inew(1))
+              pnew(5,itmp(1)) = fmass(inew(1))
+              leadfac(itmp(1)) = xtotfac(inew(1))
+              itypnew(itmp(1)) = ityp(inew(1))
+              i3new(itmp(1)) = iso3(inew(1))
+              pnew_ipT(ipmp(1)) = tmp_ipT(1)
+              pnew_wt(ipmp(1)) = tmp_wt(1)
+         enddo
+!       write(6,*) "new: ",D_ctl,nexit,ind1,ind2,inew(1),inew(2),tind(1),
+!     &     tind(2),itypnew(1),itypnew(2),itmp(1),itmp(2),ipmp(1),ipmp(2)
+      endif
+
 
 c<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -985,7 +1017,7 @@ c     write mass, ID, I3 and spin to global arrays
 
  215  continue
 
-      if (D_ctl.eq.3) call delpart(inew(2))
+      if (D_ctl.eq.3 .or. D_ctl.eq.4) call delpart(inew(2))
 
 c set lstcoll:
 c     lstcoll relates the outgoing particles of this scattering/decay interaction
@@ -1752,7 +1784,8 @@ c mesonic string: the first hadron contains one leading quark
       ! id1 and id2 are the two incong paricles id
       ! case 0 -- invalid scattering : id1 and id2 are both Dmesons
       ! case 1 -- normal light hadron scattering
-      ! case 3 -- D meson decay
+      ! case 3 -- D meson decay (except D*+)
+      ! case 4 -- D*+ decay
     
       implicit none
       include 'coms.f'
@@ -1763,7 +1796,11 @@ c mesonic string: the first hadron contains one leading quark
       if (ind2 .eq. 0) then
           id1 = abs(ityp(ind1))
           if (id1.eq.133 .or. id1.eq.134) then
-              D_ctl = 3
+            if (id1.eq.134 .and. iso3(ind1).eq.1) then
+                D_ctl = 4
+            else
+                D_ctl = 3
+            endif
           else
               D_ctl = 1
            endif
