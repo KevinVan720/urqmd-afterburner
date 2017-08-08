@@ -48,3 +48,4 @@ add_executable(urqmd
 )
 
 install(TARGETS urqmd DESTINATION bin)
+#install(TARGETS urqmd DESTINATION ${PROJECT_NAME})

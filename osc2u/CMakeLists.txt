@@ -8,3 +8,4 @@ add_executable(osc2u
 )
 
 install(TARGETS osc2u DESTINATION bin)
+#install(TARGETS osc2u DESTINATION ${PROJECT_NAME})
