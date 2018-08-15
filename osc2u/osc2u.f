@@ -136,50 +136,55 @@ c default settings for CTParam and CTOption cccccccccccccccccccccccccccccc
       CTOption(42)=0
       CTOption(43)=0
 
+
+      ! set collision parameters (does not matter but prevent NaN)
+      Ap = 208
+      At = 208
+      Zp = 82
+      Zt = 82
+      ebeam = 1380
+      bimp = 0
+
+
 ccccccccccccccccccccccccccccccccccccccccccccccccc
-! read in the light hadron fileName
-      file10 = '    '
-      call getenv('ftn10',file10)
-      if (file10(1:4) .ne. '    ') then
-          open(UNIT=10,FILE=file10,STATUS='old',FORM='formatted')
-      else
-          write(6,*) "No light hadron list provided"
-          return
-      endif
+! read in the lightFile (if it is OSCAR formatted)
+c      file10 = '    '
+c      call getenv('ftn10',file10)
+c      if (file10(1:4) .ne. '    ') then
+c          open(UNIT=10,FILE=file10,STATUS='old',FORM='formatted')
+c      endif
 
 ! read in heavy meson fileName
       file20 = '    '
       call getenv('ftn20',file20)
       if (file20(1:4) .ne. '    ') then
           open(UNIT=20,FILE=file20,STATUS='old',FORM='formatted')
-      else
-          write(6,*) "No heavy meson list provided"
       endif
 
 
 ! read in headers      
-      call read_osc_header(iret)
-      if(iret.eq.0) stop
+c      call read_osc_header(iret)
+c      if(iret.eq.0) stop
 
       if (file20(1:4) .ne. '    ') then
           call read_HQmeson_header(iret)
+          call readInputFromCML()
+          hq_per_event = int(hq_npart/noversamples)
           if (iret .eq. 0) stop
       endif
-
 ! a bit more comment on this part
 ! for each event, since right now all the oversampled light hadrons are store into different oversampled events
 ! while the Dmesons are stored in a larger one event list
 ! current way to solve this is to evenly distributed Dmesons into each oversampled events (if we believe the assumption
 ! that each oversampled events have similar multiplicities)
 
-      call readInputFromCML()
-      hq_per_event = int(hq_npart / noversamples) 
 
-      
+      event = 0
 
  1    continue
 
-      call read_osc_event(iret)
+!      call read_osc_event(iret)
+      call read_event(iret)
       if(iret.eq.0) stop
 
       if (file20(1:4) .ne. '    ') then
@@ -187,26 +192,14 @@ ccccccccccccccccccccccccccccccccccccccccccccccccc
           if(iret .eq. 0) stop
       endif
 
-
-
-
-cdebug
-c      if(procev.gt.100) stop
-
       procev=procev+1
 
-cdebug
-c      if(procev.le.101) goto 1
-
-c     process the event
       call procevent(tstep)
-
-
-
 
       call write_uheader(14)
       call file14out(tstep)
 
+      event = event + 1
 
       goto 1
 
@@ -415,6 +408,45 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       return
 
       end
+
+
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+      subroutine read_event(iret)
+
+      implicit none
+      include 'ucoms.f'
+
+      character comment
+      integer i,iret
+
+      iret=1
+
+      ! number of particles in event
+      read(*,*,err=399,end=399) comment, lq_npart
+      npart = lq_npart
+
+      ! particle data
+      do 499 i=1,lq_npart
+         read(*,*) t_ityp(i),
+     .        t_r0(i), t_rx(i), t_ry(i), t_rz(i),
+     .        t_p0(i), t_px(i), t_py(i), t_pz(i)
+         t_fmass(i) = sqrt(t_p0(i)**2
+     .        - t_px(i)**2 - t_py(i)**2 - t_pz(i)**2)
+         t_ipT(i) = 0d0
+         t_weight(i) = 0d0
+         t_tform(i) = 0d0
+ 499  continue
+
+      return
+
+ 399  continue
+      iret=0
+      return
+
+      end
+
+
+
 
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine read_osc_event(iret)
