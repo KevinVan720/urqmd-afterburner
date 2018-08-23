@@ -16,7 +16,7 @@ heavyFile=$4
 # ftn20 would be Dmeson sampled from fragPLUSrecomb
 # nsamples would be # of oversamples from hypersurface
 export ftn20=$heavyFile
-./osc2u < $lightFile nsamples=$num > urqmd_input.dat || exit 1
+osc2u < $lightFile nsamples=$num > urqmd_input.dat || exit 1
 
 # create UrQMD config file
 cat > urqmd.conf <<EOF
@@ -42,4 +42,4 @@ xxx
 EOF
 
 # run UrQMD
-ftn09=urqmd.conf ftn10=urqmd_input.dat ftn30=$outputFile ./urqmd || exit 1
+ftn09=urqmd.conf ftn10=urqmd_input.dat ftn30=$outputFile urqmd || exit 1
