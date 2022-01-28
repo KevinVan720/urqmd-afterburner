@@ -19,7 +19,7 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       integer iso3
 
       integer tab_size
-      parameter (TAB_SIZE = 180)
+      parameter (TAB_SIZE = 184)
 
       integer idtab(3,TAB_SIZE)
 
@@ -160,7 +160,13 @@ c Psi'
 c Ds
      .     138,   0,   431,
 c Ds*
-     .     139,   0,   433 /
+     .     139,   0,   433,
+c B
+     .     140,  -1,   511,    140,   1,   521,  
+c B_s
+     .     141,   0,   531,
+c B_c
+     .     142,   0,   541/
 
 
 cb search for the ITYP in IDTAB
