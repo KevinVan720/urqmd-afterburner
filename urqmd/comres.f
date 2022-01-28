@@ -13,7 +13,7 @@ c
       parameter (minmes=100) ! lowest meson particle ID
 corig      parameter (maxmes=132) ! hightest meson particle ID
 c add 5 charmed mesons to array
-      parameter (maxmes=139) ! hightest meson particle ID
+      parameter (maxmes=142) ! hightest meson particle ID
 
 c number of resonances of a kind
       parameter (numnuc=16) ! number of nucleon resonances
@@ -106,6 +106,7 @@ c
       real*8 widmes(minmes:maxmes)
       integer strres(minbar:maxbar),strmes(minmes:maxmes)
       integer chrmres(minbar:maxbar),chrmmes(minmes:maxmes)
+      integer bttmres(minbar:maxbar),bttmmes(minmes:maxmes)
 
       integer lbr(0:maxbra,minnuc+1:maxdel)
       integer lbs1(0:maxbrs1,minlam+1:maxsig)
@@ -118,7 +119,8 @@ c
      ,                    jres,jmes,lbr,brtype,pares,pames,
      ,                    bmtype,
      ,                    Isores,Isomes,strres,strmes,mlt2it,
-     ,                    chrmres,chrmmes
+     ,                    chrmres,chrmmes,
+     ,                    bttmres,bttmmes
 
 c     massres   : baryon mass table
 c     widres    : baryon decay width table

@@ -1229,10 +1229,10 @@ c D*-D* or D*-N* or N*-N*
 c all remaining BB-collisions
          collclass=13
          return
-      elseif(i1.ge.133.and.i2.ge.minmes) then
+      elseif(i1.ge.133.and.i1.le.139.and.i2.ge.minmes) then
 c M_c - Meson
          collclass=14
-      elseif(i1.ge.133.and.i2.le.maxbar) then
+      elseif(i1.ge.133.and.i1.le.139.and.i2.le.maxbar) then
 c M_c - Baryon
          collclass=15
          return
@@ -1241,6 +1241,8 @@ c (should not happen, see conditions for M_c - Meson scattering)
       elseif(i1.ge.135.and.i1.le.137.and.i2.ge.135.and.i2.le.137)then
          collclass=0
       else
+c bottom now has all collclass=0 
+c I don't know how to clean up this giant if-else block...
 c class not defined (sets sigtot to zero)
       write(*,*)'scatter: collclass of ',i1,i2,' not yet defined!'
          collclass=0

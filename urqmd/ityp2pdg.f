@@ -18,7 +18,7 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       integer iso3
 
       integer tab_size
-      parameter (TAB_SIZE = 180)
+      parameter (TAB_SIZE = 184)
 
       logical anti
       integer abs_ityp
@@ -166,7 +166,13 @@ c Psi'
 c Ds
      .     138,   0,   431,  
 c Ds*
-     .     139,   0,   433 /
+     .     139,   0,   433,
+c B
+     .     140,  -1,   511,    140,   1,   521,  
+c B_s
+     .     141,   0,   531,
+c B_c
+     .     142,   0,   541/
 
 
 c PYTHIA pdgid's (only need to subtract the offset!)
@@ -371,7 +377,10 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
      .     'Chi_c',
      .     'Psi Prime',
      .     'D_s',
-     .     'D_s*'/
+     .     'D_s*',
+     .     'B',
+     .     'B_s',
+     .     'B_c'/
 
       abs_ityp = abs(ityp)
 
