@@ -137,7 +137,7 @@ c default settings for CTParam and CTOption cccccccccccccccccccccccccccccc
       CTOption(43)=0
 
 
-      ! set collision parameters (does not matter but prevent NaN)
+! set collision parameters (does not matter but prevent NaN)
       Ap = 208
       At = 208
       Zp = 82
@@ -255,10 +255,8 @@ c 103  format(a2,12(e10.4,a2))
  103  format(a2,12(e11.4,a2))
 
 
-csab changed e16.8 to D24.16
 c standard particle information vector
- 201  format(9e16.8,i11,2i3,i9,i5,i4)
-cLHC 201  format(9e24.16,i11,2i3,i9,i5,i4)
+ 201  format(9e24.16,i11,2i3,i9,i5,i4)
 
 c special output for cto40 (restart of old event)
 ! 210  format(9e16.8,i11,2i3,i9,i5,i10,3e16.8,i8)
@@ -449,13 +447,13 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      subroutine read_osc_event(iret)
+      subroutine read_event(iret)
 
       implicit none
       include 'ucoms.f'
 
-      integer i,j,iret
-      real*8 dummy
+      character comment
+      integer i,iret
 
       iret=1
       
@@ -463,7 +461,8 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
  903  format (i10,2x,i10,2x,f8.3,2x,f8.3)
 
-c particles
+      ! number of particles in event
+      read(*,*,err=299,end=299) comment, npart
 
       do 99 i=1,lq_npart
          read(10,904) j, t_ityp(i), 
@@ -473,10 +472,6 @@ c particles
          t_ipT(i) = 0d0
          t_weight(i) = 0d0
  99   continue
-
- 904  format (i10,2x,i10,2x,10(D24.16,2x))
-
-c      here now id to ityp/iso3/charge conversion must take place
 
       return
 

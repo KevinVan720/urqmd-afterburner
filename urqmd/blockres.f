@@ -91,7 +91,10 @@ c 1--    K    rho   omega phi
      &  1.680,1.720,1.649,1.910, 
 c charmed mesons
 c         D     D*   J/Psi  Chi_c   Psi'   D_s    Ds*
-     &  1.866, 2.01, 3.097, 3.415, 3.686, 1.968, 2.112/
+     &  1.866, 2.01, 3.097, 3.415, 3.686, 1.968, 2.112,
+c bottom mesons
+c         B     B_s    B_c
+     &  5.279, 5.366, 6.275/
 
       data widmes /
 c          g    pi  eta   omega   rho   f_0(980)  K
@@ -110,7 +113,10 @@ c 1--    K    rho   omega phi
      &  0.227, 0.310, 0.174, 0.150,
      &  0.323, 0.240, 0.220, 0.090,
 c charmed mesons: (currently J/psi, psi' and chi_c are kept stable)
-     &  0.0, 0.002, 0.0, 0.0, 0.0, 0.0, 0.0/
+     &  0.0, 0.002, 0.0, 0.0, 0.0, 0.0, 0.0,
+c bottom mesons
+c         B   B_s  B_c
+     &   0.0, 0.0, 0.0/
 
 c      Spins of resonances and mesons (multiplied by two):
 
@@ -131,7 +137,9 @@ c      Spins of resonances and mesons (multiplied by two):
 c 1--
      &     2,2,2,2,2,2,2,2,
 c charm
-     &     0,2,2,2,2,0,2/
+     &     0,2,2,2,2,0,2,
+c bottom 
+     &     0,0,0/
 
 c      Parities of resonances and mesons:
 
@@ -156,7 +164,9 @@ c                 k2 a2 f2* f2' k1 b1 h1 h1* rh* rh* om* om*
 c 1--    (incl. rh* rh* om* om*)
      &  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
 c charm: 
-     &  -1, -1, -1, +1, -1, -1, -1/
+     &  -1, -1, -1, +1, -1, -1, -1,
+c bottom:
+     &  -1, -1, -1/
 c
 
 c       Isospins of resonances and mesons (multiplied by two)
@@ -172,7 +182,9 @@ c       Isospins of resonances and mesons (multiplied by two)
 c 1-- 
      &  1,2,0,0,1,2,0,0,
 c charm
-     & 1, 1, 0, 0, 0, 0, 0/
+     & 1, 1, 0, 0, 0, 0, 0,
+c bottom
+     & 1, 0, 0/
 
 c strres gives the number of strange quarks for baryons
 c        (switch sign for anti-part.)
@@ -183,12 +195,19 @@ c        (switch sign for anti-part.)
 c 1--
      &  -1,0,0,0,-1,0,0,0,
 c charm:
-     & 0,0,0,0,0,1,1/
+     & 0,0,0,0,0,-1,-1,
+c bottom:
+     & 0,1,0/
 
 c chrmres charm for baryons
       data chrmres/55*0/
 c chrmmes charm for mesons
-      data chrmmes/33*0,1,1,0,0,0,1,1/
+      data chrmmes/33*0,1,1,0,0,0,1,1,0,0,1/
+
+c bttmres bottom for baryons
+      data bttmres/55*0/
+c bttmmes bottom for mesons
+      data bttmmes/33*0,0,0,0,0,0,0,0,-1,-1,-1/
 
 c meson id's sorted by multipletts
       data mlt2it/
@@ -202,7 +221,9 @@ c meson id's sorted by multipletts
      &     130, 129, 131, 132,
 c charm
      &     133,134,135,136,137,
-     &     138,139/
+     &     138,139,
+c bottom
+     &     140,141,142/
 
 
 c      the decay branches have different angular momentum
@@ -349,7 +370,11 @@ c charm
      & 9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,  ! Psi'
      & 9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,  ! chi_c
      & 9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,  ! D_s
-     & 9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9/  ! D_s*
+     & 9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,  ! D_s*
+c bottom
+     & 9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,  ! B
+     & 9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,  ! B_s
+     & 9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9/  ! B_c
 
         data branres/
 
@@ -613,8 +638,19 @@ c D_s
 c D_s*
      a  .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00,
      a  .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00,
-     a  .00, .00
-     a   /
+     a  .00, .00,
+c B
+     a  .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00,
+     a  .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00,
+     a  .00, .00,
+c B_s
+     a  .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00,
+     a  .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00,
+     a  .00, .00,
+c B_c
+     a  .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00,
+     a  .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00,
+     a  .00, .00/
 C     gg   gpi  grho    gome geta gK   2pi pirho 3pi pieta 4pi KK* K*K
 c      0     1    2     3    4    5    6   7    8    9     10  11  12
 c    et2pi etrho rho2pi om2pi 2eta KK  2Kpi Kpi  K*pi Krho kom K*2pi ompi
@@ -635,8 +671,9 @@ c 1--
      &  0.636, 0.278, 0.414, 0.990,
      &  0.636, 0.278, 0.414, 0.990,
 c charm   D     D*    J/Psi  Chi_c  Psi'    D_s    D_s*
-     &  1.866, 2.005, 3.097, 3.415, 3.686, 1.968, 2.112/
-
+     &  1.866, 2.005, 3.097, 3.415, 3.686, 1.968, 2.112,
+c bottom  B     B*
+     &  5.279, 5.366, 6.274/
         data bmtype/
 c for each branch you have itype1(M),itype2(M),itype3(M),itype4(M)
 c in case of resonances in the exit-channel, maximum two are allowed
@@ -993,6 +1030,33 @@ c ... standard urqmd particles
          is=chrmres(ia)
       endif
       chrmit=is*iabs(i)/i       ! number of charm quarks in part. i
+      return
+      end
+
+C####C##1#########2#########3#########4#########5#########6#########7##
+      integer function bttmit(i) 
+      implicit none
+      integer i,is,ia
+      include 'comres.f'
+
+c  return zero charm in case of PYTHIA PDG particles 
+      if (abs(i).gt.1000)then
+          bttmit=0
+         return
+      endif
+
+c ... standard urqmd particles
+      if(i.eq.0) then
+          bttmit=0
+        return
+      endif
+      ia=iabs(i)
+      if(ia.ge.minmes)then
+         is=bttmmes(ia)
+      else
+         is=bttmres(ia)
+      endif
+      bttmit=is*iabs(i)/i       ! number of charm quarks in part. i
       return
       end
 
