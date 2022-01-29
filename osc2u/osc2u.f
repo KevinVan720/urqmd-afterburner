@@ -255,8 +255,10 @@ c 103  format(a2,12(e10.4,a2))
  103  format(a2,12(e11.4,a2))
 
 
+csab changed e16.8 to D24.16
 c standard particle information vector
- 201  format(9e24.16,i11,2i3,i9,i5,i4)
+ 201  format(9e16.8,i11,2i3,i9,i5,i4)
+cLHC 201  format(9e24.16,i11,2i3,i9,i5,i4)
 
 c special output for cto40 (restart of old event)
 ! 210  format(9e16.8,i11,2i3,i9,i5,i10,3e16.8,i8)
