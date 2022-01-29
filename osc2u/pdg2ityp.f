@@ -19,7 +19,7 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       integer iso3
 
       integer tab_size
-      parameter (TAB_SIZE = 198)
+      parameter (TAB_SIZE = 202)
 
       integer idtab(3,TAB_SIZE)
 
@@ -179,6 +179,7 @@ c B
      .     140,   1,   521,    140,   -1,   511,  
 c B*
      .     141,   1,   10521,  141,   -1,   10511, 
+     .     141,   1,   523,    141,   -1,   513, 
 c B_s
      .     142,   0,   531,
 c B_c
