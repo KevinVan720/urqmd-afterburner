@@ -678,7 +678,7 @@ c 1--
 c charm   D     D*    J/Psi  Chi_c  Psi'    D_s    D_s*
      &  1.866, 2.005, 3.097, 3.415, 3.686, 1.968, 2.112,
 c bottom  B     B*  B_s  B_c
-     &  5.279, 5.324, 5.366, 6.274/
+     &  5.279, 5.325, 5.366, 6.275/
         data bmtype/
 c for each branch you have itype1(M),itype2(M),itype3(M),itype4(M)
 c in case of resonances in the exit-channel, maximum two are allowed
