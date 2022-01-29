@@ -924,10 +924,6 @@ c jbernhard's format
 
       if (bf30) return
 
-      ! event header
- 955  format (a,1x,i5,2x,a,1x,i7)
-      write(30,955) '# event', event, 'particles', npart
-
 
       write (30,955) '# event', event, 'particles', npart
 
