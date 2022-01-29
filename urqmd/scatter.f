@@ -45,6 +45,8 @@ chp counter for new loop
       integer ict
 c     functions and subroutines
       integer collclass,isoit
+c! integer for Dmeson channel (used for special case as HQ meson oversampled)
+      integer D_ctl
 
 c
 c     make local copies of particle indices
@@ -142,6 +144,20 @@ c some abbreviations
          itot2=isoit(ityp2)
          iso32=iso3(ind2)
       endif
+
+!>>>>>>>>> Yingru, Apr13, is neccessary in the case HQ meson has a weight
+        tmp_ipT(1)=HQ_ipT(ind1)
+        tmp_wt(1)=HQ_wt(ind1)
+        if(ind2.eq.0) then
+            tmp_ipT(2)=0
+            tmp_wt(2)=0
+        else
+            tmp_ipT(2)=HQ_ipT(ind2)
+            tmp_wt(2)=HQ_wt(2)
+        endif
+
+!<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
 
 
 
@@ -274,17 +290,19 @@ c.. take care sigpart in case of decay (no sigpart defined)
 
 cccc end of scatter/decay if
       call file15out(ind1,ind2,sqrts,ssigtot,sigpart)
+! add by Yingru  (Apr 12, 2017)
+      call Dmeson_channel(ind1,ind2,D_ctl)
 
 c     save old particle information in case of pauli blocking
 c     or rejection due to energy non-conservation
       call saveinfo(ind1,1)
       call saveinfo(ind2,2)
-      
+     
 c... prepare exit channel
       call scatprep(ind1,ind2,sqrts,sigpart)
 
       lambda=1.0d0
-      call prescale(lambda)
+      call prescale_mod(lambda, D_ctl)
 
       call scatfinal(colldens)
 
@@ -697,30 +715,16 @@ c     create the slot
 
       return
       end
-
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      subroutine prescale(lambda)
-c
-c     Revision : 1.0
-c
-cinput lambda : scaling factor for momenta of outgoing particles
-c
-c {\tt scatprep, prescale} and {\tt scatfinal} handle the collision/decay
-c kinematics and the book-keeping of the global particle vectors.
-c In {\tt prescale} the actual kinematics for the exit-channel, including
-c a call to {\tt angdis} for the angular distribution and the transformation
-c from the two particle restframe to the computational frame is being 
-c performed. Momenta and locations of exit channel particles are written
-c to the global particle vectors. \\
-c The scaling factor {\tt lambda} is needed to ensure global energy conservation
-c in the case of momentum dependent interactions (MDI). In that case {\tt prescale}
-c can be called several succesive times with different values of {\tt lambda}
-c to minimize $E_{tot,in} - E_{tot,out}$.
+!>>>>>>>>>>> Yingru, Apr 12, 2017 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+      subroutine prescale_mod(lambda, D_ctl)
+c a version that is used in the spectial case that Dmeson is oversamples
+! in such case, neglecting any light hadron momentum change due to scattering with HQ or HQ decay
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
       include 'coms.f'
       include 'options.f'
       include 'newpart.f'
+      include 'outcom.f'  ! in order to able to use the temperary slots
 
       integer i,j,itmp(mprt),ipmp(mprt),ind1,ind2,nb1,nb2
       real*8 lambda,th,phi2,ctheta1,phi1,theta3,phi3,pabs
@@ -729,6 +733,7 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       real*8 rpott(2),rpotx(2),rpoty(2),rpotz(2)
       real*8 tauf(mprt),tformold(2)
       integer getspin,bar,nm1,nm2
+      integer D_ctl, light_ind, heavy_ind, dum_ind
 
       common /scatcomr/rstringx,rstringy,rstringz,tstring,
      &                 rpott,rpotx,rpoty,rpotz,
@@ -787,6 +792,333 @@ c end of delay-if
 
  205     continue
       endif
+
+c>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+! add an extra step for the special case of oversampled HQ meson
+! in this case, negelecting any lq momentum change and new decayed lq from HQ
+
+! in this version of UrQMD(3.4), the Dmeson scattering case are
+! D + D -> D + D  ==> D_ctl=0 
+! l + l -> X ...  ==> D_ctl=1
+! D + l -> D + l  ==> D_ctl=2 (there is no D+l->X case)
+! D* -> D + l     ==> D_ctl=3 (decay, except D*+)
+! D*+ -> D + l    ==> D_ctl=4 (D*+ decay)
+       
+
+      if (D_ctl .eq.0) then
+        do i = 1, nexit
+              tstring(ipmp(i)) = r0(inew(i))
+              rstringx(ipmp(i)) = rx(inew(i))
+              rstringy(ipmp(i)) = ry(inew(i))
+              rstringz(ipmp(i)) = rz(inew(i))
+              rpott(ipmp(i)) = r0_t(inew(i))
+              rpotx(ipmp(i)) = rx_t(inew(i))
+              rpoty(ipmp(i)) = ry_t(inew(i))
+              rpotz(ipmp(i)) = rz_t(inew(i))
+              pnew(4,itmp(i)) = p0(inew(i))
+              pnew(1,itmp(i)) = px(inew(i))
+              pnew(2,itmp(i)) = py(inew(i))
+              pnew(3,itmp(i)) = pz(inew(i))
+              pnew(5,itmp(i)) = fmass(inew(i))
+              leadfac(itmp(i)) = xtotfac(inew(i))
+              itypnew(itmp(i)) = ityp(inew(i))
+              i3new(itmp(i)) = iso3(inew(i))
+              pnew_ipT(itmp(i)) = HQ_ipT(inew(i))
+              pnew_wt(itmp(i)) = HQ_wt(inew(i))
+          enddo
+!         write(6,*)D_ctl,nexit,ind1,ind2,inew(1),inew(2),
+!    &            itypnew(1),itypnew(2),itmp(1),itmp(2),ipmp(1),ipmp(2)
+      endif
+
+
+      if (D_ctl .eq. 2) then
+! first check the light particle indices (better use temp one, this is the safest choice)
+         if(tityp(1).ne.133.and.tityp(1).ne.134) then
+             light_ind=1
+             heavy_ind=2
+         else if(tityp(2).ne.133.and.tityp(2).ne.134) then
+             light_ind=2
+             heavy_ind=1
+         endif
+
+!         write(6,*) "old: ",D_ctl,nexit,ind1,ind2,inew(1),inew(2),
+!     &    ityp(ind1),
+!     &   ityp(ind2), itypnew(1),itypnew(2),tind(1),tind(2),tityp(1),
+!     &   tityp(2),itmp(1),itmp(2),ipmp(1),ipmp(2)
+        
+      do i=1, nexit
+          if(itypnew(itmp(i)).ne.133 .and. itypnew(itmp(i)).ne.134) then
+!         write(6,*) tstring(ipmp(i)),rstringx(ipmp(i)),rstringy(ipmp(i))
+!     &   ,rstringz(ipmp(i)),rpott(ipmp(i)),rpotx(ipmp(i)),rpoty(ipmp(i))
+!         write(6,*) r0(inew(i)),rx(inew(i)),ry(inew(i)),rz(inew(i)),
+!     &         r0_t(inew(i)),rx_t(inew(i)),ry_t(inew(i)),rz_t(inew(i))
+              tstring(ipmp(i)) = tr0(light_ind)
+              rstringx(ipmp(i)) = trx(light_ind)
+              rstringy(ipmp(i)) = try(light_ind)
+              rstringz(ipmp(i)) = trz(light_ind)
+              pnew(4,itmp(i)) = tp0(light_ind)
+              pnew(1,itmp(i)) = tpx(light_ind)
+              pnew(2,itmp(i)) = tpy(light_ind)
+              pnew(3,itmp(i)) = tpz(light_ind)
+              pnew(5,itmp(i)) = tm(light_ind)
+        
+              leadfac(itmp(i)) = txtotfac(light_ind)
+              tformold(ipmp(i)) = ttform(light_ind)
+              itypnew(itmp(i)) = tityp(light_ind)
+              i3new(itmp(i)) = tiso3(light_ind)
+              tauf(itmp(i)) = 0.d0
+              pnew_ipT(itmp(i))=tmp_ipT(light_ind)
+              pnew_wt(itmp(i))=tmp_ipT(light_ind)
+          else
+              pnew_ipT(itmp(i))=tmp_ipT(heavy_ind)
+              pnew_ipT(itmp(i))=tmp_ipT(heavy_ind)
+          endif
+      enddo
+!            write(6,*) "new: ", D_ctl,nexit,ind1,ind2,inew(1),inew(2),
+!     &      ityp(ind1),
+!     &      ityp(ind2), itypnew(1),itypnew(2),tind(1),tind(2),tityp(1),
+!     &      tityp(2),itmp(1),itmp(2),ipmp(1),ipmp(2)
+      endif
+ 
+! a final delete slot , for D_ctl=3 or 4
+      if(D_ctl.eq.3) then
+!       write(6,*)"old: ", D_ctl,nexit,ind1,ind2,inew(1),inew(2),tind(1),
+!     &     tind(2),itypnew(1),itypnew(2),itmp(1),itmp(2),ipmp(1),ipmp(2)
+         if(inew(1).gt.inew(2)) then
+            dum_ind = inew(1)
+            inew(1) = inew(2)
+            inew(2) = dum_ind
+         endif
+
+         do i=1, nexit
+         if(itypnew(1).eq.133 .or. itypnew(1).eq.134) then
+               ipmp(1) = 1
+               ipmp(2) = 2
+               itmp(1) = 1
+               itmp(2) = 2
+         else
+               ipmp(1) = 2
+               itmp(1) = 2
+               ipmp(2) = 1
+               itmp(2) = 1
+         endif
+               pnew_ipT(ipmp(1)) = tmp_ipT(1)
+               pnew_wt(ipmp(1)) = tmp_wt(1)
+         enddo
+!         nexit=1
+!       write(6,*)tstring(ipmp(i)),rstringx(ipmp(i)),rstringy(ipmp(i)),
+!     &      rstringz(ipmp(i)),rpott(ipmp(i)),rpotx(ipmp(i)),rpoty(ipmp)
+!       write(6,*) "new: ",D_ctl,nexit,ind1,ind2,inew(1),inew(2),tind(1),
+!     &     tind(2),itypnew(1),itypnew(2),itmp(1),itmp(2),ipmp(1),ipmp(2)
+      endif
+
+c an extra check for forbidden D*+ decays
+! a final delete slot , for D_ctl=3 or 4
+      if(D_ctl.eq.4) then
+!       write(6,*)"old: ", D_ctl,nexit,ind1,ind2,inew(1),inew(2),tind(1),
+!     &     tind(2),itypnew(1),itypnew(2),itmp(1),itmp(2),ipmp(1),ipmp(2)
+         if (inew(1).gt.inew(2)) then
+            dum_ind = inew(1)
+            inew(1) = inew(2)
+            inew(2) = dum_ind
+         endif
+         do i=1, nexit
+         if(itypnew(1).eq.133 .or. itypnew(1).eq.134) then
+               ipmp(1) = 1
+               ipmp(2) = 2
+               itmp(1) = 1
+               itmp(2) = 2
+         else
+               ipmp(1) = 2
+               itmp(1) = 2
+               ipmp(2) = 1
+               itmp(2) = 1
+         endif
+              tstring(ipmp(1)) = r0(inew(1))
+              rstringx(ipmp(1)) = rx(inew(1))
+              rstringy(ipmp(1)) = ry(inew(1))
+              rstringz(ipmp(1)) = rz(inew(1))
+              rpott(ipmp(1)) = r0_t(inew(1))
+              rpotx(ipmp(1)) = rx_t(inew(1))
+              rpoty(ipmp(1)) = ry_t(inew(1))
+              rpotz(ipmp(1)) = rz_t(inew(1))
+              pnew(4,itmp(1)) = p0(inew(1))
+              pnew(1,itmp(1)) = px(inew(1))
+              pnew(2,itmp(1)) = py(inew(1))
+              pnew(3,itmp(1)) = pz(inew(1))
+              pnew(5,itmp(1)) = fmass(inew(1))
+              leadfac(itmp(1)) = xtotfac(inew(1))
+              itypnew(itmp(1)) = ityp(inew(1))
+              i3new(itmp(1)) = iso3(inew(1))
+              pnew_ipT(ipmp(1)) = tmp_ipT(1)
+              pnew_wt(ipmp(1)) = tmp_wt(1)
+         enddo
+!       write(6,*) "new: ",D_ctl,nexit,ind1,ind2,inew(1),inew(2),tind(1),
+!     &     tind(2),itypnew(1),itypnew(2),itmp(1),itmp(2),ipmp(1),ipmp(2)
+      endif
+
+
+c<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+c     write coordinates for energy-check and pauli-blocking
+c     correct particle/string-locations from relative to absolute
+
+      do 215 i=1,nexit
+c     write locations to global arrays
+c     the ipmp values determine wether the new particle belongs to incoming slot 1 or 2
+         r0(inew(i))=tstring(ipmp(i))
+         rx(inew(i))=rstringx(ipmp(i))
+         ry(inew(i))=rstringy(ipmp(i))
+         rz(inew(i))=rstringz(ipmp(i))
+cpot
+c     likewise for MD trajectories
+         r0_t(inew(i))=rpott(ipmp(i))
+         rx_t(inew(i))=rpotx(ipmp(i))
+         ry_t(inew(i))=rpoty(ipmp(i))
+         rz_t(inew(i))=rpotz(ipmp(i))
+
+c     write momenta to global arrays
+         p0(inew(i))=pnew(4,itmp(i))
+         px(inew(i))=pnew(1,itmp(i))
+         py(inew(i))=pnew(2,itmp(i))
+         pz(inew(i))=pnew(3,itmp(i))
+
+!! record weight information as well
+        HQ_ipT(inew(i)) = pnew_ipT(ipmp(i))
+        HQ_wt(inew(i)) = pnew_wt(ipmp(i))
+c store formation time and leading hadron 
+         if(pnew(5,itmp(i)).gt.0d0)then
+            tform(inew(i))=tstring(1)+tauf(itmp(i))*
+     &                  pnew(4,itmp(i))/pnew(5,itmp(i))
+         else
+           tform(inew(i))=tstring(ipmp(i))
+         endif
+
+c     cross section reduction factor and string ID
+         xtotfac(inew(i))=leadfac(itmp(i))
+
+c additional reduction of the leading hadrons' cross section
+c in case the incoming hadron x-sec was already reduced
+c otherwise an elastic scattering would erase formation time...
+         if(xtotfacold(ipmp(i)).lt.1d0) then
+            xtotfac(inew(i))=xtotfacold(ipmp(i))*xtotfac(inew(i))
+         endif
+         if(tform(inew(i)).lt.tformold(ipmp(i))
+     &      .and.xtotfac(inew(i)).gt.0) then
+            tform(inew(i))=tformold(ipmp(i))
+         endif
+
+
+c     write mass, ID, I3 and spin to global arrays
+         fmass(inew(i))=pnew(5,itmp(i))
+         ityp(inew(i))=itypnew(itmp(i))
+         iso3(inew(i))=i3new(itmp(i))
+         spin(inew(i))=getspin(itypnew(itmp(i)),-1)
+
+ 215  continue
+
+      if (D_ctl.eq.3 .or. D_ctl.eq.4) call delpart(inew(2))
+
+c set lstcoll:
+c     lstcoll relates the outgoing particles of this scattering/decay interaction
+c     to each other via the number of the collision - it is used to prevent them
+c     from directly interacting again with each other because this would be unphysical.
+      do i=1,nexit
+         lstcoll(inew(i))=ctag
+      end do
+      return
+      end
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+      subroutine prescale(lambda)
+c
+c     Revision : 1.0
+c
+cinput lambda : scaling factor for momenta of outgoing particles
+c
+c {\tt scatprep, prescale} and {\tt scatfinal} handle the collision/decay
+c kinematics and the book-keeping of the global particle vectors.
+c In {\tt prescale} the actual kinematics for the exit-channel, including
+c a call to {\tt angdis} for the angular distribution and the transformation
+c from the two particle restframe to the computational frame is being 
+c performed. Momenta and locations of exit channel particles are written
+c to the global particle vectors. \\
+c The scaling factor {\tt lambda} is needed to ensure global energy conservation
+c in the case of momentum dependent interactions (MDI). In that case {\tt prescale}
+c can be called several succesive times with different values of {\tt lambda}
+c to minimize $E_{tot,in} - E_{tot,out}$.
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+      implicit none
+      include 'coms.f'
+      include 'options.f'
+      include 'newpart.f'
+
+      integer i,j,itmp(mprt),ipmp(mprt),ind1,ind2,nb1,nb2
+      real*8 lambda,th,phi2,ctheta1,phi1,theta3,phi3,pabs
+      real*8 pzi1,pzi2,pxi1,pxi2,pyi1,pyi2
+      real*8 rstringx(2),rstringy(2),rstringz(2),tstring(2)
+      real*8 rpott(2),rpotx(2),rpoty(2),rpotz(2)
+      real*8 tauf(mprt),tformold(2)
+      integer getspin,bar,nm1,nm2
+      integer ityp1, ityp2, D_ctl
+
+      common /scatcomr/rstringx,rstringy,rstringz,tstring,
+     &                 rpott,rpotx,rpoty,rpotz,
+     &                 pzi1,pzi2,pxi1,pxi2,pyi1,pyi2,
+     &                 ctheta1,phi1,th,phi2,tformold
+      common /scatcomi/itmp,ipmp,ind1,ind2,nb1,nb2,
+     &                 bar,nm1,nm2
+
+
+      if(nexit.eq.1) then ! soft resonance production
+
+c new momenta are stored in pnew
+         pnew(1,1)=lambda*(pxi1+pxi2)
+         pnew(2,1)=lambda*(pyi1+pyi2)
+         pnew(3,1)=lambda*(pzi1+pzi2)
+c this is the energy
+         pnew(4,1)=dsqrt(pnew(5,1)**2+
+     &             pnew(1,1)**2+pnew(2,1)**2+pnew(3,1)**2)
+c formation time
+         tauf(1)=0.d0         
+      else                      ! scattering/decay
+         do 205 j=1,nexit
+c compute formation time (as a eigentime)
+            tauf(j)=xnew(4,j)*pnew(5,j)/pnew(4,j)
+
+c     rescale momenta of particles
+            call getang(pnew(1,j),pnew(2,j),pnew(3,j),theta3,phi3,pabs)
+            pabs=lambda*pabs
+            call putang(pnew(1,j),pnew(2,j),pnew(3,j),theta3,phi3,pabs)
+
+
+c check for forward time-delay
+c in case of delay the momenta are already in the comp. frame
+            if(.not.(CTOption(34).eq.2.and.iline.eq.20.and.
+     &         ityptd(1,pslot(1)).ne.0)) then
+
+c     rotate in the from z-axis to th&phi given by angdis 
+               call rotbos(dacos(ctheta1),phi1,0d0,0d0,0d0,
+     &                     pnew(1,j),pnew(2,j),pnew(3,j),pnew(4,j))
+
+c     rotate from the NN to the comp. sys. and
+c     transform particles to computational system
+
+c     decays should not be rotated
+               if (iline.eq.20) then 
+                  th = 0.d0
+                  phi2 = 0.d0
+               end if
+
+               call rotbos(th,phi2,betax,betay,betaz,
+     &                     pnew(1,j),pnew(2,j),pnew(3,j),pnew(4,j))
+
+            endif
+c end of delay-if
+
+
+ 205     continue
+      endif
+
 
 c     write coordinates for energy-check and pauli-blocking
 c     correct particle/string-locations from relative to absolute
@@ -1443,4 +1775,61 @@ c mesonic string: the first hadron contains one leading quark
 
       return
       end
+
+
+
+
+!>>>>>>>>>>>>>> Yingru Apr 6, 2017 >>>>>>>>>>>>>>>>>>>>>>>>>>
+! A subroutine which will define the HQ meson scatter type 
+! is neccessary the spectific use of oversampled Dmesons
+      subroutine Dmeson_channel(ind1,ind2,D_ctl)
+      ! id1 and id2 are the two incong paricles id
+      ! case 0 -- invalid scattering : id1 and id2 are both Dmesons
+      ! case 1 -- normal light hadron scattering
+      ! case 3 -- D meson decay (except D*+)
+      ! case 4 -- D*+ decay
+    
+      implicit none
+      include 'coms.f'
+      include 'comres.f'
+
+      integer D_ctl, ind1, ind2, idmin, idmax, id1, id2
+
+      if (ind2 .eq. 0) then
+          id1 = abs(ityp(ind1))
+          if (id1.eq.133 .or. id1.eq.134) then
+            if (id1.eq.134 .and. iso3(ind1).eq.1) then
+                D_ctl = 4
+            else
+                D_ctl = 3
+            endif
+          else
+              D_ctl = 1
+           endif
+      else
+         
+          id1 = abs(ityp(ind1))
+          id2 = abs(ityp(ind2))
+          idmin = min0(id1,id2)
+          idmax = max0(id1,id2)
+          D_ctl = 1
+
+          if (idmax .eq. 133 .or. idmax .eq.134) then
+              if(idmin .eq. 133 .or. idmin.eq.134) then
+                  D_ctl = 0
+              elseif (idmin .eq. 0) then
+                  D_ctl = 3
+              else
+                  D_ctl = 2
+               endif
+          endif
+
+       endif
+
+
+      end
+
+
+!<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
 

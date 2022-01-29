@@ -105,7 +105,8 @@ c standard particle information vector
  201  format(9e24.16,i11,2i3,i9,i5,i4)
 
 c special output for cto40 (restart of old event)
- 210  format(9e24.16,i11,2i3,i9,i5,i10,3e24.16,i8)
+ 210  format(9e16.8,i11,2i3,i9,i5,i10,15e16.8)
+cLHC 210  format(9e24.16,i11,2i3,i9,i5,i10,3e24.16,i8)
 
 c special output for mmaker
  203  format(9e24.16,i5,2i3,i6,i5,i4,i5,2e24.16)
@@ -424,6 +425,9 @@ c and store entry channel in temporary observables
       tlcoll(1)=lstcoll(ind1)
       torigin(1)=origin(ind1)
       tuid(1)=uid(ind1)
+
+      ttform(1) = tform(ind1)
+      txtotfac(1) = xtotfac(ind1)
       if(ind2.le.0) then
          nin=1
       elseif(ind2.gt.0) then
@@ -447,6 +451,9 @@ c and store entry channel in temporary observables
          tlcoll(2)=lstcoll(ind2)
          torigin(2)=origin(ind2)
          tuid(2)=uid(ind2)
+    
+         ttform(2) = tform(ind2)
+         txtotfac(2) = xtotfac(ind2)
       endif
 
       return
@@ -461,6 +468,7 @@ c     format: x y z px py pz ityp iso3...
 
       write(iou(15),502) nin,nexit,iline,ctag,acttime,tsqrts
      ,     ,tstot,tsigpart,cdens
+
       do 11 i=1,nin
          istr=strit(tityp(i))
          ich = fchg(tiso3(i),tityp(i))
@@ -756,7 +764,7 @@ c body for OSCAR 97A format
  903  format (i10,2x,i10,2x,f8.3,2x,f8.3)
 
 
- 904  format (i10,2x,i10,2x,9(e12.6,2x))
+ 904  format (i10,2x,i10,2x,16(e12.6,2x))
  
 
 c particles, original
@@ -767,6 +775,9 @@ c particles, original
      .        px(i)+ffermpx(i), py(i)+ffermpy(i), pz(i)+ffermpz(i), 
      .        p0(i), fmass(i),     
      .        frrx(i), frry(i), frrz(i), frr0(i)
+! Modified by Yingru (A modification of the 97A format)
+     &        ,0d0, 0d0, 0d0, 0d0, 0d0,
+     &        HQ_ipT(i), HQ_wt(i)
  99   continue
 
 
@@ -909,6 +920,7 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       entry nice_event
 
 c jbernhard's format
+! Modified by Yingru
 
       if (bf30) return
 
@@ -916,23 +928,41 @@ c jbernhard's format
  955  format (a,1x,i5,2x,a,1x,i7)
       write(30,955) '# event', event, 'particles', npart
 
-      ! particle data: ID charge pT phi y eta
- 956  format (i8,i3,4es24.16)
 
-      do 544 i=1,npart
+      write (30,955) '# event', event, 'particles', npart
+
+
+ 955  format (a7,1x,i5,2x,a9,1x,i7)
+
+
+ 956  format (i8,2x,i2,2x,8(e12.6,2x))
+
+
+c particle ID, charge, mass, pT, phi, eta
+!      do 544 i=1,npart
+!         id = pdgid(ityp(i), iso3(i))
+!         px_ = px(i) + ffermpx(i)
+!         py_ = py(i) + ffermpx(i)
+!         pz_ = pz(i) + ffermpx(i)
+!         pmag = sqrt(px_*px_ + py_*py_ + pz_*pz_)
+!         write(30,956) id, charge(i), fmass(i),
+!     .        sqrt(px_*px_ + py_*py_), atan2(py_, px_),
+!     .        0.5*log((pmag+pz_)/(pmag-pz_))
+! 544  continue
+
+       do 544 i=1,npart
          id = pdgid(ityp(i), iso3(i))
          px_ = px(i) + ffermpx(i)
          py_ = py(i) + ffermpx(i)
          pz_ = pz(i) + ffermpx(i)
          pmag = sqrt(px_*px_ + py_*py_ + pz_*pz_)
-         write(30,956)
-     .        id,
-     .        charge(i),
-     .        sqrt(px_*px_ + py_*py_),
-     .        atan2(py_, px_),
-     .        .5*log((p0(i)+pz_)/(p0(i)-pz_)),
-     .        .5*log((pmag+pz_)/(pmag-pz_))
+         write(30,956) id, charge(i), fmass(i),
+     .        px_, py_, pz_, 0.5*log((p0(i)+pz_)/(p0(i)-pz_)),
+     .        0.5*log((pmag+pz_)/(pmag-pz_))
+     &        , HQ_ipT(i), HQ_wt(i)
  544  continue
+
+
 
       return
 
@@ -1051,6 +1081,7 @@ c now read particle-output
      @        ityp(i),iso3(i),charge(i),
      @        lstcoll(i),ncoll(i),origin(i),
      @        dectime(i),tform(i),xtotfac(i)
+     &        ,HQ_ipT(i), HQ_wt(i)
       if(abs(ityp(i)).le.maxbar)nbar=nbar+1
  39   continue
       nmes=npart-nbar

@@ -16,12 +16,12 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 c
       implicit none
       include 'ucoms.f'
+      include 'ucoms_HQ.f'
 
       integer iret,tstep,procev,i
 
-
-
       character*1 echar
+      character*77 file10, file20
       
 
       procev=0
@@ -136,43 +136,69 @@ c default settings for CTParam and CTOption cccccccccccccccccccccccccccccc
       CTOption(42)=0
       CTOption(43)=0
 
-ccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      ! set collision parameters (these don't matter)
+! set collision parameters (does not matter but prevent NaN)
       Ap = 208
       At = 208
       Zp = 82
       Zt = 82
-      ebeam = 1380.
-      bimp = 0.
+      ebeam = 1380
+      bimp = 0
 
-      ! initialize event counter
+
+ccccccccccccccccccccccccccccccccccccccccccccccccc
+! read in the lightFile (if it is OSCAR formatted)
+c      file10 = '    '
+c      call getenv('ftn10',file10)
+c      if (file10(1:4) .ne. '    ') then
+c          open(UNIT=10,FILE=file10,STATUS='old',FORM='formatted')
+c      endif
+
+! read in heavy meson fileName
+      file20 = '    '
+      call getenv('ftn20',file20)
+      if (file20(1:4) .ne. '    ') then
+          open(UNIT=20,FILE=file20,STATUS='old',FORM='formatted')
+      endif
+
+
+! read in headers      
+c      call read_osc_header(iret)
+c      if(iret.eq.0) stop
+
+      if (file20(1:4) .ne. '    ') then
+          call read_HQmeson_header(iret)
+          call readInputFromCML()
+          hq_per_event = int(hq_npart/noversamples)
+          if (iret .eq. 0) stop
+      endif
+! a bit more comment on this part
+! for each event, since right now all the oversampled light hadrons are store into different oversampled events
+! while the Dmesons are stored in a larger one event list
+! current way to solve this is to evenly distributed Dmesons into each oversampled events (if we believe the assumption
+! that each oversampled events have similar multiplicities)
+
+
       event = 0
 
  1    continue
 
+!      call read_osc_event(iret)
       call read_event(iret)
       if(iret.eq.0) stop
 
-cdebug
-c      if(procev.gt.100) stop
+      if (file20(1:4) .ne. '    ') then
+          call read_HQmeson_event(iret, procev)
+          if(iret .eq. 0) stop
+      endif
 
       procev=procev+1
 
-cdebug
-c      if(procev.le.101) goto 1
-
-
-c     process the event
       call procevent(tstep)
-
-
-
 
       call write_uheader(14)
       call file14out(tstep)
 
-      ! increment event counter
       event = event + 1
 
       goto 1
@@ -233,7 +259,8 @@ c standard particle information vector
  201  format(9e24.16,i11,2i3,i9,i5,i4)
 
 c special output for cto40 (restart of old event)
- 210  format(9e24.16,i11,2i3,i9,i5,i10,3e24.16,i8)
+! 210  format(9e16.8,i11,2i3,i9,i5,i10,3e16.8,i8)
+ 210  format(9e16.8,i11,2i3,i9,i5,i10,5e16.8)
 
 c collsision stats for file14
  202  format(8i8)
@@ -312,7 +339,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 c
 
 c
-
+ 
       itotcoll=ctag-dectag
       iinelcoll=itotcoll-NBlColl-NElColl
       write(*,*) npart,out_time
@@ -328,14 +355,60 @@ c now write particle-output
      @        ityp(i),iso3(i),charge(i),
      @        lstcoll(i),ncoll(i),origin(i),
      @        dectime(i),thad(i),xtotfac(i)
+     &        ,t_ipT(i), t_weight(i)
 
  31   continue
 
 c 
       return
       end
-
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+      subroutine read_osc_header(iret)
+
+      implicit none
+      include 'ucoms.f'
+
+      character*12 oscar_tag, file_tag
+      character*8 model_tag, version_tag
+      character*1 cdummy1
+      character*3 cdummy3
+      character*4 reffram
+      integer ntestp,iret
+      
+      iret=1
+
+      read (unit=10,fmt=901,err=199,end=199) oscar_tag
+      read (unit=10,fmt=901,err=199,end=199) file_tag
+
+ 901  format (a12)
+
+
+      read (unit=10,fmt=902,err=199,end=199) 
+     &             model_tag, version_tag, cdummy1, Ap, cdummy1, 
+     &             Zp, cdummy3, At, cdummy1, Zt, cdummy1,
+     &             reffram, ebeam, ntestp
+
+      if (reffram .eq. 'eqsp') then
+         CTOption(27)=0
+      elseif (reffram .eq. 'tar') then
+         CTOption(27)=1
+      elseif (reffram .eq. 'pro') then
+         CTOption(27)=2
+      endif
+
+
+ 902  format (2(a8,2x),a1,i3,a1,i6,a3,i3,a1,i6,a1,2x,a4,2x,
+     &     e10.4,2x,i8)
+
+      return
+ 199  continue
+      iret=0
+      return
+
+      end
+
+
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine read_event(iret)
 
       implicit none
@@ -347,15 +420,57 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       iret=1
 
       ! number of particles in event
-      read(*,*,err=299,end=299) comment, npart
+      read(*,*,err=399,end=399) comment, lq_npart
+      npart = lq_npart
 
       ! particle data
-      do 99 i=1,npart
+      do 499 i=1,lq_npart
          read(*,*) t_ityp(i),
      .        t_r0(i), t_rx(i), t_ry(i), t_rz(i),
      .        t_p0(i), t_px(i), t_py(i), t_pz(i)
          t_fmass(i) = sqrt(t_p0(i)**2
      .        - t_px(i)**2 - t_py(i)**2 - t_pz(i)**2)
+         t_ipT(i) = 0d0
+         t_weight(i) = 0d0
+         t_tform(i) = 0d0
+ 499  continue
+
+      return
+
+ 399  continue
+      iret=0
+      return
+
+      end
+
+
+
+
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+      subroutine read_event(iret)
+
+      implicit none
+      include 'ucoms.f'
+
+      character comment
+      integer i,iret
+
+      iret=1
+      
+      read (unit=10,fmt=903,err=299,end=299) event,lq_npart,bimp,dummy
+
+ 903  format (i10,2x,i10,2x,f8.3,2x,f8.3)
+
+      ! number of particles in event
+      read(*,*,err=299,end=299) comment, npart
+
+      do 99 i=1,lq_npart
+         read(10,904) j, t_ityp(i), 
+     .        t_px(i), t_py(i), t_pz(i), t_p0(i), t_fmass(i),     
+     .        t_rx(i), t_ry(i), t_rz(i), t_r0(i), t_tform(i)
+
+         t_ipT(i) = 0d0
+         t_weight(i) = 0d0
  99   continue
 
       return
@@ -365,3 +480,165 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       return
 
       end
+
+
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c added by Yingru Xu, Mar 30, 2017
+c>>>>>>>>>>>>>>> read in heavy meson header
+      subroutine read_HQmeson_header(iret)
+      implicit none
+      include 'ucoms_HQ.f'
+
+      integer iret, nstep, dum_NUMSAMP
+      integer Ap, At, Zp, Zt
+      real*8 ebeam
+      character*12 oscar_tag, file_tag
+      character*8 model_tag, version_tag
+      character*1 cdummy1
+      character*3 cdummy3
+      character*4 reffram
+
+
+      iret = 1
+
+      read (20,481,err=599,end=599) oscar_tag
+      read (20,481,err=599,end=599) file_tag
+
+ 481  format (a12)
+
+
+      read (20,490,err=599,end=599)
+     &             model_tag, version_tag, cdummy1, Ap, cdummy1,
+     &             Zp, cdummy3, At, cdummy1, Zt, cdummy1,
+     &             reffram, ebeam, nstep
+
+
+ 490   format (2(a8,2x),a1,i3,a1,i6,a3,i3,a1,i6,a1,2x,a4,2x,
+     &     e10.4,2x,i8)
+
+
+
+      hq_event = 0
+      hq_npart = 0
+      read (20,500,err=599,end=599)
+     &    hq_event,hq_npart,hq_imppar,hq_angle,hq_itim,dum_NUMSAMP
+
+ 500  format(i10,2x,i10,2x,f8.3,2x,f8.3,2x,i4,2x,i4,2X,i7)
+
+       return
+
+ 599  continue
+       iret = 0
+       write(6,*) "ERROR while read in heavy meson header "
+       write(6,*) "terminating ..."
+       return
+
+      end
+c<<<<<<<<<<<<< end of read in heavy meson header
+
+c>>>>>>>>>>>>>>>>>>read in heavy meson list
+      subroutine read_HQmeson_event(iret, ievent)
+      implicit none
+      include 'ucoms_HQ.f'
+      include 'ucoms.f'
+
+
+      integer i,j,iret, ievent, hq_this_event
+      double precision dummy
+! now read in heavy meson particles
+
+      hq_this_event = hq_per_event
+
+      if (ievent .eq. (noversamples-1)) then
+          hq_this_event = hq_npart - hq_per_event*ievent
+      endif
+
+!      write(6,*) "read in ", hq_this_event,
+!     &       " heavy meson in event ", ievent
+
+      npart = lq_npart + hq_this_event
+!      write(6,*) "light hadrons: ", lq_npart
+!      write(6,*) "total hadrons: ", npart
+
+      do 899 i=lq_npart+1, npart
+        read(20,8921) j,t_ityp(i),
+     &    t_px(i), t_py(i), t_pz(i), t_p0(i), t_fmass(i),
+     &    t_rx(i), t_ry(i), t_rz(i), t_r0(i),
+     &    dummy, dummy, dummy, dummy, dummy,
+     &    dummy, t_ipT(i), t_weight(i)
+
+       !!write(6,*) ievent, j, t_ityp(i)
+
+ 899  continue
+
+ 8921 format(i10,2x,i10,17(2x,d12.6))
+      return
+
+ 8199 continue
+      iret = 0
+      write (6,*) "ERROR while read in heavy meson list..."
+      write (6,*) "terminating ..."
+      return
+
+      end
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+      subroutine readInputFromCML()
+      ! read inputs from command line
+      implicit none
+      include 'ucoms_HQ.f'
+
+      character*60 buffer
+      character*20 varName
+
+      integer DResult
+      integer QNum, ArgIndex
+
+      QNum = iargc()
+
+      Do ArgIndex = 1, QNum
+        call getarg(ArgIndex, buffer)
+        call processAssignment(buffer, "=", varName, DResult)
+
+        if (varName .eq. "nsamples") noversamples = DResult
+      enddo
+
+      end
+
+
+      subroutine processAssignment(string, seperator, varName, DResult)
+
+      Implicit None
+      Character :: seperator
+      Character (*) :: string, varName
+      Character*60 :: LHS, RHS
+      Integer:: DResult
+
+      Integer:: break_here, i, cha
+
+      varName = ""
+      break_here = index(string, seperator)
+      LHS = adjustl(string(:break_here-1))
+      RHS = adjustl(string(break_here+1:))
+
+      Do i=1, len_trim(LHS)
+          cha = ichar(LHS(i:i))
+          if (cha >=65 .AND. cha < 90) then
+              varName(i:i) = char(cha +32)
+          else
+              varName(i:i) = LHS(i:i)
+          endif
+      enddo
+
+      Read(RHS, fmt='(I10)') DResult
+
+      end
+
+
+
+
+
+
+
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c end of Yingru's modification
+

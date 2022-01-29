@@ -1,19 +1,25 @@
 #!/bin/bash
 
-if [ $# -ne 2 ]; then
-  echo "usage: $0 input_file output_file"
+if [ $# -ne 4 ]; then
+  echo "usage: $0 nsamples output_file lightFile heavyFile"
   exit 1
 fi
 
 # read arguments
-inputfile=$1
-outputfile=$2
+num=$1
+outputFile=$2
+lightFile=$3
+heavyFile=$4
 
 # ensure that executables 'osc2u' and 'urqmd' will be found in the PATH
 export PATH="$PATH:$(dirname $0)"
 
 # run the OSCAR to UrQMD converter
-osc2u < $inputfile > urqmd_input.dat || exit 1
+# ftn10 would be light hadron sampled from particlization
+# ftn20 would be Dmeson sampled from fragPLUSrecomb
+# nsamples would be # of oversamples from hypersurface
+export ftn20=$heavyFile
+osc2u < $lightFile nsamples=$num > urqmd_input.dat || exit 1
 
 # create UrQMD config file
 [[ -f urqmd.conf ]] || cat > urqmd.conf <<EOF
@@ -39,4 +45,4 @@ xxx
 EOF
 
 # run UrQMD
-ftn09=urqmd.conf ftn10=urqmd_input.dat ftn30=$outputfile urqmd || exit 1
+ftn09=urqmd.conf ftn10=urqmd_input.dat ftn30=$outputFile urqmd || exit 1
