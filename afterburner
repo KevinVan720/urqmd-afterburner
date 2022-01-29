@@ -11,8 +11,6 @@ outputFile=$2
 lightFile=$3
 heavyFile=$4
 
-# ensure that executables 'osc2u' and 'urqmd' will be found in the PATH
-export PATH="$PATH:$(dirname $0)"
 
 # run the OSCAR to UrQMD converter
 # ftn10 would be light hadron sampled from particlization
@@ -22,7 +20,7 @@ export ftn20=$heavyFile
 osc2u < $lightFile nsamples=$num > urqmd_input.dat || exit 1
 
 # create UrQMD config file
-[[ -f urqmd.conf ]] || cat > urqmd.conf <<EOF
+cat > urqmd.conf <<EOF
 # calculate until a late time
 # output only the final timestep
 tim 8000 8000
