@@ -447,13 +447,13 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      subroutine read_event(iret)
+      subroutine read_osc_event(iret)
 
       implicit none
       include 'ucoms.f'
 
-      character comment
-      integer i,iret
+      integer i,j,iret
+      real*8 dummy
 
       iret=1
       
@@ -461,8 +461,7 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
  903  format (i10,2x,i10,2x,f8.3,2x,f8.3)
 
-      ! number of particles in event
-      read(*,*,err=299,end=299) comment, npart
+c particles
 
       do 99 i=1,lq_npart
          read(10,904) j, t_ityp(i), 
@@ -472,6 +471,10 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
          t_ipT(i) = 0d0
          t_weight(i) = 0d0
  99   continue
+
+ 904  format (i10,2x,i10,2x,10(D24.16,2x))
+
+c      here now id to ityp/iso3/charge conversion must take place
 
       return
 
