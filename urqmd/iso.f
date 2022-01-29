@@ -334,9 +334,8 @@ c error check
           write(6,*)'ERROR IN ISOCGK/ISONEW:PRBSUM.LE.0.'
             write(6,*)"Can't couple Jin, Min=",Jtot,M
             write(6,*)'To J1,J2,J3,J4=',Jnew(1),Jnew(2),Jnew(3),Jnew(4)
-c Wenkai: A very temp fix!
-c          stop 137
-          prbsum=0.000001
+          stop 137
+
        endif
 
 c normalize to 1 (now we have real probabilities for different Mout combis)
