@@ -196,7 +196,6 @@ cb search for the ITYP in IDTAB
             iso3=idtab(2,i)
             return
          elseif((pdgid.lt.0).and.(idtab(3,i).eq.abs(pdgid))) then
-            write(6,*) ' read in ',pdgid, idtab(3,i)
             ityp=-1*idtab(1,i)
             iso3=-1*idtab(2,i)
             return
