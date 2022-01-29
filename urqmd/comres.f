@@ -13,7 +13,7 @@ c
       parameter (minmes=100) ! lowest meson particle ID
 corig      parameter (maxmes=132) ! hightest meson particle ID
 c add 5 charmed mesons to array
-      parameter (maxmes=142) ! hightest meson particle ID
+      parameter (maxmes=143) ! hightest meson particle ID
 
 c number of resonances of a kind
       parameter (numnuc=16) ! number of nucleon resonances

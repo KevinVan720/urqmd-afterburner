@@ -93,8 +93,8 @@ c charmed mesons
 c         D     D*   J/Psi  Chi_c   Psi'   D_s    Ds*
      &  1.866, 2.01, 3.097, 3.415, 3.686, 1.968, 2.112,
 c bottom mesons
-c         B     B_s    B_c
-     &  5.279, 5.366, 6.275/
+c         B   B*   B_s    B_c
+     &  5.279, 5.325, 5.366, 6.275/
 
       data widmes /
 c          g    pi  eta   omega   rho   f_0(980)  K
@@ -115,8 +115,8 @@ c 1--    K    rho   omega phi
 c charmed mesons: (currently J/psi, psi' and chi_c are kept stable)
      &  0.0, 0.002, 0.0, 0.0, 0.0, 0.0, 0.0,
 c bottom mesons
-c         B   B_s  B_c
-     &   0.0, 0.0, 0.0/
+c         B   B* B_s  B_c
+     &   0.0, 0.0, 0.0, 0.0/
 
 c      Spins of resonances and mesons (multiplied by two):
 
@@ -139,7 +139,7 @@ c 1--
 c charm
      &     0,2,2,2,2,0,2,
 c bottom 
-     &     0,0,0/
+     &     0,2,0,0/
 
 c      Parities of resonances and mesons:
 
@@ -166,7 +166,7 @@ c 1--    (incl. rh* rh* om* om*)
 c charm: 
      &  -1, -1, -1, +1, -1, -1, -1,
 c bottom:
-     &  -1, -1, -1/
+     &  -1, -1, -1, -1/
 c
 
 c       Isospins of resonances and mesons (multiplied by two)
@@ -184,7 +184,7 @@ c 1--
 c charm
      & 1, 1, 0, 0, 0, 0, 0,
 c bottom
-     & 1, 0, 0/
+     & 1, 1, 0, 0/
 
 c strres gives the number of strange quarks for baryons
 c        (switch sign for anti-part.)
@@ -197,17 +197,17 @@ c 1--
 c charm:
      & 0,0,0,0,0,-1,-1,
 c bottom:
-     & 0,1,0/
+     & 0,0,1,0/
 
 c chrmres charm for baryons
       data chrmres/55*0/
 c chrmmes charm for mesons
-      data chrmmes/33*0,1,1,0,0,0,1,1,0,0,1/
+      data chrmmes/33*0,1,1,0,0,0,1,1,0,0,0,1/
 
 c bttmres bottom for baryons
       data bttmres/55*0/
 c bttmmes bottom for mesons
-      data bttmmes/33*0,0,0,0,0,0,0,0,-1,-1,-1/
+      data bttmmes/33*0,0,0,0,0,0,0,0,-1,-1,-1,-1/
 
 c meson id's sorted by multipletts
       data mlt2it/
@@ -223,7 +223,7 @@ c charm
      &     133,134,135,136,137,
      &     138,139,
 c bottom
-     &     140,141,142/
+     &     140,141,142,143/
 
 
 c      the decay branches have different angular momentum
@@ -373,6 +373,7 @@ c charm
      & 9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,  ! D_s*
 c bottom
      & 9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,  ! B
+     & 9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,  ! B*
      & 9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,  ! B_s
      & 9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9/  ! B_c
 
@@ -643,6 +644,10 @@ c B
      a  .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00,
      a  .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00,
      a  .00, .00,
+c B*
+     a  .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00,
+     a  .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00,
+     a  .00, .00,
 c B_s
      a  .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00,
      a  .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00,
@@ -672,8 +677,8 @@ c 1--
      &  0.636, 0.278, 0.414, 0.990,
 c charm   D     D*    J/Psi  Chi_c  Psi'    D_s    D_s*
      &  1.866, 2.005, 3.097, 3.415, 3.686, 1.968, 2.112,
-c bottom  B     B*
-     &  5.279, 5.366, 6.274/
+c bottom  B     B*  B_s  B_c
+     &  5.279, 5.324, 5.366, 6.274/
         data bmtype/
 c for each branch you have itype1(M),itype2(M),itype3(M),itype4(M)
 c in case of resonances in the exit-channel, maximum two are allowed
@@ -1061,9 +1066,8 @@ c ... standard urqmd particles
       end
 
 C####C##1#########2#########3#########4#########5#########6#########7##
-! changed by Yingru -- no use of PYTHIA PDG particles
-      integer function fchg(i3,i)
-      integer i,i3,b,s,ia,strit,cc,chrmit
+      integer function fchg(i3,i) 
+      integer i,i3,b,s,ia,strit,hepchg,cc,chrmit
       include 'comres.f'
       if(i.eq.0) then
          fchg=0
@@ -1075,11 +1079,11 @@ C####C##1#########2#########3#########4#########5#########6#########7##
       cc=chrmit(i)
 
 c return proper charge in case of PYTHIA PDG particles 
-!      if (ia.gt.1000) then
-!       idpdg=i/abs(i)*(ia-1000)
-!       fchg=int(hepchg(idpdg)/3d0)
-!       return
-!      end if
+      if (ia.gt.1000) then
+       idpdg=i/abs(i)*(ia-1000)
+       fchg=int(hepchg(idpdg)/3d0)
+       return
+      end if
 
 c... for urqmd particles
       if(ia.ge.minmes)then
