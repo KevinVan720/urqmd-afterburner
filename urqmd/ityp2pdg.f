@@ -18,7 +18,7 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       integer iso3
 
       integer tab_size
-      parameter (TAB_SIZE = 188)
+      parameter (TAB_SIZE = 190)
 
       logical anti
       integer abs_ityp

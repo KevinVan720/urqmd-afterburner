@@ -1067,7 +1067,7 @@ c ... standard urqmd particles
 
 C####C##1#########2#########3#########4#########5#########6#########7##
       integer function fchg(i3,i) 
-      integer i,i3,b,s,ia,strit,hepchg,cc,chrmit
+      integer i,i3,b,s,ia,strit,cc,chrmit
       include 'comres.f'
       if(i.eq.0) then
          fchg=0
@@ -1079,11 +1079,11 @@ C####C##1#########2#########3#########4#########5#########6#########7##
       cc=chrmit(i)
 
 c return proper charge in case of PYTHIA PDG particles 
-      if (ia.gt.1000) then
-       idpdg=i/abs(i)*(ia-1000)
-       fchg=int(hepchg(idpdg)/3d0)
-       return
-      end if
+!      if (ia.gt.1000) then
+!       idpdg=i/abs(i)*(ia-1000)
+!       fchg=int(hepchg(idpdg)/3d0)
+!       return
+!      end if
 
 c... for urqmd particles
       if(ia.ge.minmes)then
