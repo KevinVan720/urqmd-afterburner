@@ -195,9 +195,9 @@ c        (switch sign for anti-part.)
 c 1--
      &  -1,0,0,0,-1,0,0,0,
 c charm:
-     & 0,0,0,0,0,-1,-1,
+     & 0,0,0,0,0,1,1,
 c bottom:
-     & 0,0,1,0/
+     & 0,0,-1,0/
 
 c chrmres charm for baryons
       data chrmres/55*0/
@@ -207,7 +207,7 @@ c chrmmes charm for mesons
 c bttmres bottom for baryons
       data bttmres/55*0/
 c bttmmes bottom for mesons
-      data bttmmes/33*0,0,0,0,0,0,0,0,-1,-1,-1,-1/
+      data bttmmes/33*0,0,0,0,0,0,0,0,1,1,1,1/
 
 c meson id's sorted by multipletts
       data mlt2it/
