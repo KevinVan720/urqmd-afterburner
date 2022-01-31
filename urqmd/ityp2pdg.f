@@ -18,7 +18,7 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       integer iso3
 
       integer tab_size
-      parameter (TAB_SIZE = 186)
+      parameter (TAB_SIZE = 190)
 
       logical anti
       integer abs_ityp
@@ -157,6 +157,7 @@ c D
      .     133,  -1,   421,    133,   1,   411,  
 c D*
      .     134,  -1, 10421,    134,   1, 10411,  
+     .     134,  -1,   423,    134,   1,   413,
 c J/Psi
      .     135,  0, 443,
 c Chi_c
@@ -171,6 +172,7 @@ c B
      .     140,   -1,   521,    140,   1,   511,  
 c B*
      .     141,   -1,   10521,  141,   1,   10511, 
+     .     141,   -1,   523,    141,   1,   513, 
 c B_s
      .     142,   0,   531,
 c B_c
