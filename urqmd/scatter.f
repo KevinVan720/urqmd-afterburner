@@ -1572,6 +1572,8 @@ c no charmonium-charmonium collisions
 c (should not happen, see conditions for M_c - Meson scattering)
       elseif(i1.ge.135.and.i1.le.137.and.i2.ge.135.and.i2.le.137)then
          collclass=0
+      elseif(i1.ge.140)then
+         collclass=0
       else
 c bottom now has all collclass=0 
 c I don't know how to clean up this giant if-else block...
