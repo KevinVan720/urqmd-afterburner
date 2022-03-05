@@ -302,7 +302,8 @@ c... prepare exit channel
       call scatprep(ind1,ind2,sqrts,sigpart)
 
       lambda=1.0d0
-      call prescale_mod(lambda, D_ctl)
+c      call prescale_mod(lambda, D_ctl)
+      call prescale(lambda)
 
       call scatfinal(colldens)
 
@@ -1089,7 +1090,7 @@ c     rescale momenta of particles
             call getang(pnew(1,j),pnew(2,j),pnew(3,j),theta3,phi3,pabs)
             pabs=lambda*pabs
             call putang(pnew(1,j),pnew(2,j),pnew(3,j),theta3,phi3,pabs)
-
+ 
 
 c check for forward time-delay
 c in case of delay the momenta are already in the comp. frame
